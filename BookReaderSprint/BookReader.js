@@ -248,18 +248,45 @@ BookReader.prototype.init = function() {
         this.getOpenLibraryRecord(this.gotOpenLibraryRecord);
     }
     this.instances = {};
-    for (plugin in this.plugins){
-
-    	var thePlugin = new this.plugins[plugin]();
-    	
-    	// XXX Make some div for the view
-    	thePlugin.init(this, $('#BRcontainer'));
-    	thePlugin.refresh();
-    	
-    	this.instances[plugin] = thePlugin;
-
+    
+    if ( ! this.plugins.length ) {
+      // no plugins, so load a set of default plugins dynamically...
+      var self = this;
+      var defaults = [ "../BookReader/plugins/BookReader2UpView/BookReader2UpView.js" ];
+      this.loadScript(defaults.shift(), defaults);
+    } else {
+      this.initPlugins();
     }
+    
 
+}
+
+// this doesn't work running locally, bother
+BookReader.prototype.loadScript = function(script_src, defaults) {
+  var self = this;
+  var script = document.createElement("script");
+  $(script).bind("load", function() {
+    if ( ! defaults.length ) {
+      self.initPlugins();
+    } else {
+      self.loadScript(defaults.shift(), defaults);
+    }
+  }).attr({"type" : "text/javascript", "src" : script_src});
+  $("body").append(script);
+}
+
+BookReader.prototype.initPlugins = function(){
+  for (plugin in this.plugins){
+
+  	var thePlugin = new this.plugins[plugin]();
+  	
+  	// XXX Make some div for the view
+  	thePlugin.init(this, $('#BRcontainer'));
+  	thePlugin.refresh();
+  	
+  	this.instances[plugin] = thePlugin;
+
+  }
 
 }
 
