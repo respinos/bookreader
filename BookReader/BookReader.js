@@ -4632,23 +4632,24 @@ BookReader.prototype._getPageURI = function(index, reduce, rotate) {
     if ('undefined' == typeof(reduce)) {
         // reduce not passed in
         // $$$ this probably won't work for thumbnail mode
-        var ratio = this.getPageHeight(index) / this.twoPage.height;
-        var scale;
-        // $$$ we make an assumption here that the scales are available pow2 (like kakadu)
-        if (ratio < 2) {
-            scale = 1;
-        } else if (ratio < 4) {
-            scale = 2;
-        } else if (ratio < 8) {
-            scale = 4;
-        } else if (ratio < 16) {
-            scale = 8;
-        } else  if (ratio < 32) {
-            scale = 16;
-        } else {
-            scale = 32;
-        }
-        reduce = scale;
+        reduce = BookReader.util.reduceFromHeight(this.getPageHeight(index), this.twoPage.height);
+        // var ratio = this.getPageHeight(index) / this.twoPage.height;
+        // var scale;
+        // // $$$ we make an assumption here that the scales are available pow2 (like kakadu)
+        // if (ratio < 2) {
+        //     scale = 1;
+        // } else if (ratio < 4) {
+        //     scale = 2;
+        // } else if (ratio < 8) {
+        //     scale = 4;
+        // } else if (ratio < 16) {
+        //     scale = 8;
+        // } else  if (ratio < 32) {
+        //     scale = 16;
+        // } else {
+        //     scale = 32;
+        // }
+        // reduce = scale;
     }
 
     return this.getPageURI(index, reduce, rotate);
@@ -4759,7 +4760,70 @@ BookReader.util = {
     encodeURIComponentPlus: function(value) {
         // Encodes a URI component and converts ' ' to '+'
         return encodeURIComponent(value).replace(/%20/g, '+');
-    }
+    },
+    
+    nextReduce : function( currentReduce, direction, reductionFactors ) {
+
+        // XXX add 'closest', to replace quantize function
+
+        if (direction == 'in') {
+            var newReduceIndex = 0;
+
+            for (var i = 1; i < reductionFactors.length; i++) {
+                if (reductionFactors[i].reduce < currentReduce) {
+                    newReduceIndex = i;
+                }
+            }
+            return reductionFactors[newReduceIndex];
+
+        } else if (direction == 'out') { // zoom out
+            var lastIndex = reductionFactors.length - 1;
+            var newReduceIndex = lastIndex;
+
+            for (var i = lastIndex; i >= 0; i--) {
+                if (reductionFactors[i].reduce > currentReduce) {
+                    newReduceIndex = i;
+                }
+            }
+            return reductionFactors[newReduceIndex];
+        }
+
+        // Asked for specific autofit mode
+        for (var i = 0; i < reductionFactors.length; i++) {
+            if (reductionFactors[i].autofit == direction) {
+                return reductionFactors[i];
+            }
+        }
+
+        alert('Could not find reduction factor for direction ' + direction);
+        return reductionFactors[0];
+
+    },
+    
+    reduceFromHeight : function(pageHeight, targetHeight) {
+      // reduce not passed in
+      // $$$ this probably won't work for thumbnail mode
+      var ratio = pageHeight / targetHeight;
+      var scale;
+      // $$$ we make an assumption here that the scales are available pow2 (like kakadu)
+      if (ratio < 2) {
+          scale = 1;
+      } else if (ratio < 4) {
+          scale = 2;
+      } else if (ratio < 8) {
+          scale = 4;
+      } else if (ratio < 16) {
+          scale = 8;
+      } else  if (ratio < 32) {
+          scale = 16;
+      } else {
+          scale = 32;
+      }
+      reduce = scale;
+      return reduce;
+    },
+    
+    EOT : true
     // The final property here must NOT have a comma after it - IE7
 }
 
