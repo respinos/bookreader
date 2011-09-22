@@ -678,7 +678,7 @@ BookReader2UpView.prototype.prefetch = function() {
 // prefetchImg()
 //______________________________________________________________________________
 BookReader2UpView.prototype.prefetchImg = function(index) {
-    var pageURI = this.reader._getPageURI(index, this.height);
+    var pageURI = this.reader._getPageURI(index, BookReader.util.reduceFromHeight(this.reader.getPageHeight(index), this.height));
 
     // Load image if not loaded or URI has changed (e.g. due to scaling)
     var loadImage = false;
@@ -878,5 +878,4 @@ BookReader2UpView.prototype.twoPageCalculateReductionFactors = function() {
 
 
 // XXX fix to not use global
-//BookReader.registerPlugin(BookReader2UpView);
-listOfPlugins.push(BookReader2UpView);
+BookReader.registerPlugin(BookReader2UpView);
