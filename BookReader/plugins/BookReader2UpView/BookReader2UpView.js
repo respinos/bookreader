@@ -34,6 +34,12 @@ BookReader2UpView.prototype.init = function(reader, targetElement) {
       e.data.self.refresh(params);
     }
   );
+
+  $(this.reader.parentElement).bind("br_zoom.bookreader2up", { self: this },
+    function(e, params) {
+      e.data.self.zoom2up(params.direction);
+    }
+  );
     
 }
 
