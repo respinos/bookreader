@@ -37,7 +37,7 @@ BookReader2UpView.prototype.init = function(reader, targetElement) {
     
 }
 
-BookReader2UpView.prototype.refresh = function(params) {
+BookReader2UpView.prototype.refresh = function(centerPercentageX, centerPercentageY) {
   // is this a method or an event?
   $(this.container).empty();
   $(this.container).css('overflow', 'auto');
@@ -80,7 +80,6 @@ BookReader2UpView.prototype.refresh = function(params) {
       position: 'absolute'
       });
   
-  var centerPercentageX, centerPercentageY;
   // If there will not be scrollbars (e.g. when zooming out) we center the book
   // since otherwise the book will be stuck off-center
   if (this.totalWidth < $(this.wrapped).attr('clientWidth')) {
@@ -825,6 +824,52 @@ BookReader2UpView.prototype.jumpIndexForRightEdgePageX = function(pageX) {
         return jumpIndex;
     }
 }
+
+// zoom2up(direction)
+//______________________________________________________________________________
+BookReader2UpView.prototype.zoom2up = function(direction) {
+
+    // Hard stop autoplay
+    //this.stopFlipAnimations();
+    
+    // Recalculate autofit factors
+    this.twoPageCalculateReductionFactors();
+    
+    // Get new zoom state
+    var reductionFactor = BookReader.util.nextReduce(this.reduce, direction, this.reductionFactors);
+    if ((this.reduce == reductionFactor.reduce) && (this.autofit == reductionFactor.autofit)) {
+        // Same zoom
+        return;
+    }
+    this.autofit = reductionFactor.autofit;
+    this.reduce = reductionFactor.reduce;
+    this.pageScale = this.reduce; // preserve current reduce
+
+    // Preserve view center position
+    var oldCenter = this.twoPageGetViewCenter();
+    
+    // If zooming in, reload imgs.  DOM elements will be removed by prepareTwoPageView
+    // $$$ An improvement would be to use the low res image until the larger one is loaded.
+    if (1 == direction) {
+        for (var img in this.prefetchedImgs) {
+            delete this.prefetchedImgs[img];
+        }
+    }
+    
+    // Prepare view with new center to minimize visual glitches
+    //this.prepareTwoPageView(oldCenter.percentageX, oldCenter.percentageY);
+    this.refresh(oldCenter.percentageX, oldCenter.percentageY);
+}
+
+BookReader2UpView.prototype.twoPageCalculateReductionFactors = function() {    
+    this.reductionFactors = this.reader.reductionFactors.concat(
+        [
+            { reduce: this.getIdealSpreadSize( this.currentIndexL, this.currentIndexR ).reduce,
+              autofit: 'auto' }
+        ]);
+    this.reductionFactors.sort(this._reduceSort);
+}
+
 
 // XXX fix to not use global
 //BookReader.registerPlugin(BookReader2UpView);

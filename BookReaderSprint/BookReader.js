@@ -2289,8 +2289,48 @@ BookReader.util = {
     encodeURIComponentPlus: function(value) {
         // Encodes a URI component and converts ' ' to '+'
         return encodeURIComponent(value).replace(/%20/g, '+');
-    }
+    },
     // The final property here must NOT have a comma after it - IE7
+    
+    nextReduce : function( currentReduce, direction, reductionFactors ) {
+
+        // XXX add 'closest', to replace quantize function
+
+        if (direction == 'in') {
+            var newReduceIndex = 0;
+
+            for (var i = 1; i < reductionFactors.length; i++) {
+                if (reductionFactors[i].reduce < currentReduce) {
+                    newReduceIndex = i;
+                }
+            }
+            return reductionFactors[newReduceIndex];
+
+        } else if (direction == 'out') { // zoom out
+            var lastIndex = reductionFactors.length - 1;
+            var newReduceIndex = lastIndex;
+
+            for (var i = lastIndex; i >= 0; i--) {
+                if (reductionFactors[i].reduce > currentReduce) {
+                    newReduceIndex = i;
+                }
+            }
+            return reductionFactors[newReduceIndex];
+        }
+
+        // Asked for specific autofit mode
+        for (var i = 0; i < reductionFactors.length; i++) {
+            if (reductionFactors[i].autofit == direction) {
+                return reductionFactors[i];
+            }
+        }
+
+        alert('Could not find reduction factor for direction ' + direction);
+        return reductionFactors[0];
+
+    },
+    
+    EOT : true
 }
 
 
